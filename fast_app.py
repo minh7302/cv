@@ -66,6 +66,7 @@ async def get_images_result(folder: str):
 @app.post("/convert-image/")
 async def convert_image(method: str = Form(...), low_image_path: str = Form(...)):
     low_image_path = low_image_path.replace('http://127.0.0.1:8000', '.')
+    low_image_path = low_image_path.replace('%20',' ')
     low_img = cv2.cvtColor(cv2.imread(low_image_path), cv2.COLOR_BGR2RGB)
     # Lấy ảnh low từ đường dẫn và chuyển đổi theo phương pháp được chọn
     output_directory = './static/img/output/'
