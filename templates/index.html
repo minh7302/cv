@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="./static/css/style.css">
+    <script src="./static/js/act.js"></script>
+</head>
+<body>
+
+    <div id="mySidebar">
+      <button class="open-close_btn" onclick="w3_close()">Close &times;</button>
+
+      <div class="sb_top" style="font-size: 20px; text-align: center;">
+        <div>
+          Nhóm 
+        </div>
+        
+        <!-- <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="displayImage()">
+        <label style="text-align: center; cursor: pointer;" for="imageInput" style="cursor: pointer;">Upload Image</label>
+        <div>
+            <img onclick="get_img(this)" id="uploadedImage" style="max-width: 100%;">
+        </div> -->
+        
+      </div>
+
+      <div class="sb_mid">
+        
+        <div style="display: flex; justify-content:end; margin-top: 5%;">
+            <div id="folderList" style="display: flex; flex-direction: column; position: absolute; left: 2%;">
+              <div>Choose image:</div>
+                <!-- Folder buttons will be added here dynamically -->
+            </div>
+            <div id="imageList" style="display: flex; flex-direction: column; overflow: scroll; margin-right: 10%;">
+                <!-- Image buttons will be added here dynamically -->
+            </div>
+        </div>
+      </div>
+      <div class="sb_bottom">
+        <img onclick="get_img(this)" width="100%" style="height: 100%;" id="displayedImage" src="{% if image_list %}{{ url_for('static', path='img/' + image_list[0]) }}{% endif %}">
+      </div>
+            
+      <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Fetch and display folders on page load
+            fetch('/folders')
+                .then(response => response.json())
+                .then(data => {
+                    var folderList = document.getElementById('folderList');
+                    data.folders.forEach(folder => {
+                        var button = document.createElement('button');
+                        button.innerText = folder;
+                        button.onclick = function() {
+                            // Fetch and display images for the selected folder
+                            fetch('/images/' + folder)
+                                .then(response => response.json())
+                                .then(data => {
+                                    var imageList = document.getElementById('imageList');
+                                    imageList.innerHTML = '';  // Clear previous images
+                                    data.images.forEach(image => {
+                                        var imgButton = document.createElement('button');
+                                        imgButton.innerText = image;
+                                        imgButton.onclick = function() {
+                                            // Update the displayed image when an image button is clicked
+                                            var displayedImage = document.getElementById('displayedImage');
+                                            displayedImage.src = "/static/img/Test/" + folder + "/" + image;
+                                        };
+                                        imageList.appendChild(imgButton);
+                                    });
+                                    imageList.style.display = 'flex';
+                                })
+                                .catch(error => console.error('Error:', error));
+                        };
+                        folderList.appendChild(button);
+                    });
+                })
+                .catch(error => console.error('Error:', error));
+        });
+      </script>
+        
+      
+    </div>
+    
+    <div id="main">
+      <div class="header">
+        <div style="display:flex;">
+          <button style="display: none;" class="open-close_btn" id="openNav" onclick="w3_open()">&#9776;</button>
+          <a href="#default" class="logo">Enhance low-light image</a>
+        </div>
+        
+        <div class="header-right">
+          <form>
+            <label for="cars">Choose a methods:</label>
+            <select name="cars" id="cars">
+              <optgroup label="Gray Level Transform">
+                <option value="linear_gray_level_transformation">Linear gray level transformation</option>
+                <option value="piecewise_linear_transformation">Piecewise linear transformation</option>
+                <option value="logarithmic_transformation">Logarit</option>
+                <option value="adjust_gamma">Gamma</option>
+              </optgroup>
+
+              <optgroup label="Histogram">
+                <option value="hist_equalization">Histogram equalization</option>
+                <option value="apply_ahe">Adaptive histogram equalization</option>
+                <option value="apply_clahe">Contrast limited adaptive histogram equalization</option>
+              </optgroup>
+
+              <optgroup label="Retinex">
+                <option value="single_scale_retinex">Single-scale retinex</option>
+                <option value="multi_scale_retinex">Multiscale retinex</option>
+                <option value="MSRCR">Multiscale retinex color restoration</option>
+              </optgroup>
+            </select>
+            <br><br>
+            <input type="submit" value="Convert">
+          </form>
+        </div>
+        
+      </div>
+      
+      <div class="content">
+        <div class="content_top">
+          <div style="width: 45%;">
+            <div style="text-align: center;">Low light</div>
+            <img width="100%" style="height: 90%;" id="displayedImageLow">
+          </div>
+          <div style="width: 45%;">
+              <div style="text-align: center;">High light</div>
+              <img width="100%" style="height: 90%;" id="displayedImageHigh">
+          </div>
+        </div>
+
+        <div class="content_bottom">
+          <div class="image-container" style="display: flex; justify-content: space-around; height: 90%;">
+            <img width="30%" class="image clickable-image" id="img_result_1" alt="Displayed Image 1">
+            <img width="30%" class="image clickable-image" id="img_result_2" alt="Displayed Image 2">
+            <img width="30%" class="image clickable-image" id="img_result_3" alt="Displayed Image 3">
+          </div>
+
+          <div style="display: flex; justify-content: space-around; margin-top: 1%;">
+            <button onclick="prevImages()">&lt;</button>
+            <button onclick="nextImages()">&gt;</button>
+          </div>
+        </div>
+        
+        <script>
+            var startIndex = 0;
+            var imagesPerPage = 3;
+            var totalImages = 0;
+            var imageList = [];
+            var page = 0;
+            function updateImages() {
+                for (var i = 0; i < imagesPerPage; i++) {
+                    var imgIndex = startIndex + i;
+                    var imgElement = document.getElementById('img_result_' + (i + 1));
+                    if (imgIndex < totalImages) {
+                        imgElement.src = "/static/img/BrighteningTrain/high/" + imageList[imgIndex];
+                        imgElement.style.display = 'inline-block';
+                    } else {
+                        imgElement.style.display = 'none';
+                    }
+                }
+            }
+        
+            function fetchAndDisplayImages() {
+                fetch('/images_result/high')
+                    .then(response => response.json())
+                    .then(data => {
+                        imageList = data.images;
+                        totalImages = imageList.length;
+                        updateImages();
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
+        
+            function nextImages() {
+                page += 1;
+                startIndex = (startIndex + imagesPerPage) % totalImages;
+                updateImages();
+            }
+        
+            function prevImages() {
+                page -= 1;
+                if (page >= 0) {
+                  startIndex = (startIndex - imagesPerPage + totalImages) % totalImages;
+                  updateImages();
+                } else {
+                  page = 0;
+                }
+            }
+        
+            // Initial image display
+            fetchAndDisplayImages();
+            
+        </script>
+        
+        
+      </div>
+
+    </div>
+    
+    <script>
+    function w3_open() {
+      document.getElementById("main").style.marginLeft = "2%";
+      document.getElementById("mySidebar").style.width = "40%";
+      document.getElementById("mySidebar").style.display = "block";
+      document.getElementById("openNav").style.display = 'none';
+    }
+    function w3_close() {
+      document.getElementById("main").style.marginLeft = "1%";
+      document.getElementById("mySidebar").style.display = "none";
+      document.getElementById("openNav").style.display = "inline-block";
+    }
+    </script>
+    
+    </body>
+</html>
+
+
+<script>
+  var clickableImages = document.querySelectorAll('.clickable-image');
+  clickableImages.forEach(function(image, index) {
+    image.onclick = function() {
+      // Lấy ảnh low và high tương ứng
+      var lowImagePath = "/static/img/BrighteningTrain/low/" + imageList[index + page * 3];
+      var highImagePath = "/static/img/BrighteningTrain/high/" + imageList[index + page * 3];
+      
+      // Hiển thị ảnh low và high trong content_top
+      var displayedImageLow = document.getElementById('displayedImageLow');
+      var displayedImageHigh = document.getElementById('displayedImageHigh');
+      
+      displayedImageLow.src = lowImagePath;
+      displayedImageHigh.src = highImagePath;
+    };
+  });
+</script>
+
+<script>
+var convertForm = document.querySelector('form');
+convertForm.addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    // Lấy phương pháp và đường dẫn ảnh low từ form
+    var selectedMethod = document.getElementById('cars').value;
+    var lowImagePath = document.getElementById('displayedImageLow').src;
+
+    // Gửi yêu cầu chuyển đổi đến backend
+    fetch('/convert-image/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+            'method': selectedMethod,
+            'low_image_path': lowImagePath,
+        }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Hiển thị ảnh high trong content_top
+        displayedImageHigh.src = data.high_image + '?' + new Date().getTime();
+    })
+    .catch(error => console.error('Error:', error));
+});
+
+</script>
