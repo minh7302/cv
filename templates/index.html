@@ -91,30 +91,65 @@
         
         <div class="header-right">
           <form>
-            <label for="cars">Choose a methods:</label>
-            <select name="cars" id="cars">
-              <optgroup label="Gray Level Transform">
-                <option value="linear_gray_level_transformation">Linear gray level transformation</option>
-                <option value="piecewise_linear_transformation">Piecewise linear transformation</option>
-                <option value="logarithmic_transformation">Logarit</option>
-                <option value="adjust_gamma">Gamma</option>
-              </optgroup>
-
-              <optgroup label="Histogram">
-                <option value="hist_equalization">Histogram equalization</option>
-                <option value="apply_ahe">Adaptive histogram equalization</option>
-                <option value="apply_clahe">Contrast limited adaptive histogram equalization</option>
-              </optgroup>
-
-              <optgroup label="Retinex">
-                <option value="single_scale_retinex">Single-scale retinex</option>
-                <option value="multi_scale_retinex">Multiscale retinex</option>
-                <option value="MSRCR">Multiscale retinex color restoration</option>
-              </optgroup>
+            <label for="cars">Choose a method:</label>
+            <select name="cars" id="cars" onchange="updatePlaceholder()">
+                <optgroup label="Gray Level Transform">
+                    <option value="linear_gray_level_transformation">Linear gray level transformation</option>
+                    <option value="piecewise_linear_transformation">Piecewise linear transformation</option>
+                    <option value="logarithmic_transformation">Logarit</option>
+                    <option value="adjust_gamma">Gamma</option>
+                </optgroup>
+        
+                <optgroup label="Histogram">
+                    <option value="hist_equalization">Histogram equalization</option>
+                    <option value="apply_ahe">Adaptive histogram equalization</option>
+                    <option value="apply_clahe">Contrast limited adaptive histogram equalization</option>
+                </optgroup>
+        
+                <optgroup label="Retinex">
+                    <option value="single_scale_retinex">Single-scale retinex</option>
+                    <option value="multi_scale_retinex">Multiscale retinex</option>
+                    <option value="MSRCR">Multiscale retinex color restoration</option>
+                </optgroup>
             </select>
             <br><br>
-            <input type="submit" value="Convert">
-          </form>
+            <div style="display: flex; justify-content: space-between;">
+                <input style="width: 70%;" type="text" id="param_methods" placeholder="alpha, beta">
+                <input type="submit" value="Convert">
+            </div>
+        </form>
+        
+        <script>
+            var parameters = {
+                "linear_gray_level_transformation": {"alpha": 0.5, "beta": 50},
+                "piecewise_linear_transformation": {"threshold": 128, "low_slope": 0.5, "high_slope": 2},
+                "logarithmic_transformation": {"constant": 1},
+                "adjust_gamma": {"gamma": 10},
+                "hist_equalization": {},
+                "apply_ahe": {},
+                "apply_clahe": {},
+                "single_scale_retinex": {"sigma": 10},
+                "multi_scale_retinex": {"sigma_list": [10, 50, 100]},
+                "MSRCR": {"sigma_list": [10, 50, 100]}
+            };
+        
+            function updatePlaceholder() {
+              var selectedMethod = document.getElementById('cars').value;
+              var paramMethodsInput = document.getElementById('param_methods');
+              paramMethodsInput.value = '';
+              // Lấy giá trị của key tương ứng trong parameters và sử dụng nó làm placeholder
+              var placeholderText = Object.keys(parameters[selectedMethod] || {}).join(', ');
+              console.log(placeholderText)
+              if (placeholderText == '') {
+                paramMethodsInput.style.display = 'none';
+              } else {
+                paramMethodsInput.style.display = '';
+              }
+              // Cập nhật giá trị của placeholder
+              paramMethodsInput.placeholder = placeholderText;
+            }
+        </script>
+        
         </div>
         
       </div>
@@ -244,7 +279,8 @@ convertForm.addEventListener('submit', function(event) {
     // Lấy phương pháp và đường dẫn ảnh low từ form
     var selectedMethod = document.getElementById('cars').value;
     var lowImagePath = document.getElementById('displayedImageLow').src;
-
+    var paramMethodsValue = document.getElementById('param_methods').value + ' ';
+    console.log(paramMethodsValue)
     // Gửi yêu cầu chuyển đổi đến backend
     fetch('/convert-image/', {
         method: 'POST',
@@ -254,6 +290,7 @@ convertForm.addEventListener('submit', function(event) {
         body: new URLSearchParams({
             'method': selectedMethod,
             'low_image_path': lowImagePath,
+            'param_methods': paramMethodsValue,
         }),
     })
     .then(response => response.json())
@@ -263,5 +300,4 @@ convertForm.addEventListener('submit', function(event) {
     })
     .catch(error => console.error('Error:', error));
 });
-
 </script>

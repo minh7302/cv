@@ -64,23 +64,24 @@ async def get_images_result(folder: str):
     return {"images": images}
 
 @app.post("/convert-image/")
-async def convert_image(method: str = Form(...), low_image_path: str = Form(...)):
+async def convert_image(method: str = Form(...), low_image_path: str = Form(...), param_methods = Form(...)):
+    param_methods = param_methods.replace(' ','')
     low_image_path = low_image_path.replace('http://127.0.0.1:8000', '.')
     low_image_path = low_image_path.replace('%20',' ')
     low_img = cv2.cvtColor(cv2.imread(low_image_path), cv2.COLOR_BGR2RGB)
     # Lấy ảnh low từ đường dẫn và chuyển đổi theo phương pháp được chọn
     output_directory = './static/img/output/'
     if method == "linear_gray_level_transformation":
-        high_image = linear_gray_level_transformation(low_img, alpha=0.5, beta=50)
+        high_image = linear_gray_level_transformation(low_img, float(param_methods.split(',')[0]), float(param_methods.split(',')[1]))
         title = 'linear'
     elif method == "piecewise_linear_transformation":
-        high_image = piecewise_linear_transformation(low_img, threshold=128, low_slope=0.5, high_slope=2)
+        high_image = piecewise_linear_transformation(low_img, float(param_methods.split(',')[0]), float(param_methods.split(',')[1]), float(param_methods.split(',')[2]))
         title = 'piece'
     elif method == "logarithmic_transformation":
-        high_image = logarithmic_transformation(low_img, constant= 1)
+        high_image = logarithmic_transformation(low_img, float(param_methods))
         title = 'log'
     elif method == "adjust_gamma":
-        high_image = adjust_gamma(low_img, gamma=10)
+        high_image = adjust_gamma(low_img, float(param_methods))
         title = 'gamma'
     elif method == "hist_equalization":
         high_image = hist_equalization(low_img)
@@ -92,13 +93,13 @@ async def convert_image(method: str = Form(...), low_image_path: str = Form(...)
         high_image = apply_clahe(low_img)
         title = 'clahe'
     elif method == "single_scale_retinex":
-        high_image = single_scale_retinex(low_img, sigma=10)
+        high_image = single_scale_retinex(low_img, float(param_methods))
         title = 'ssr'
     elif method == "multi_scale_retinex":
-        high_image = multi_scale_retinex(low_img, sigma_list=[10, 50, 100])
+        high_image = multi_scale_retinex(low_img, [float(i) for i in param_methods.split(',')])
         title = 'msr'
     elif method == "MSRCR":
-        high_image = MSRCR(low_img, sigma_list=[10, 50, 100])
+        high_image = MSRCR(low_img, [float(i) for i in param_methods.split(',')])
         title = 'msrcr'
     else:
         raise HTTPException(status_code=400, detail="Invalid method selected")
