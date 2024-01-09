@@ -108,15 +108,16 @@ def apply_clahe(img, clip_limit=2.0, tile_grid_size=(8, 8)):
 ## SSR
 def single_scale_retinex(img, sigma):
     retinex = cv2.log(cv2.add(np.float64(img), 1.0)) - cv2.log(cv2.GaussianBlur(np.float64(img), (0, 0), sigma) + 1.0)
-    return retinex
+    retinex_normalized = ((retinex - retinex.min()) / (retinex.max() - retinex.min())) * 255.0
+    return retinex_normalized.astype(np.uint8)
 
 ## MSR
 def multi_scale_retinex(img, sigma_list):
     retinex = np.zeros_like(np.float64(img))
     for sigma in sigma_list:
         retinex += single_scale_retinex(img, sigma)
-    retinex = retinex / len(sigma_list)
-    return retinex
+    retinex = ((retinex - retinex.min()) / (retinex.max() - retinex.min())) * 255.0
+    return retinex.astype(np.uint8)
 
 ## MSRCR
 def simplest_color_balance(img, low_clip, high_clip):

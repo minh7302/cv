@@ -27,3 +27,9 @@ function get_img(img) {
   displayedImageLow.src = img.src;
   displayedImageHigh.src = '';
 }
+
+document.getElementById('folderListBottom').onclick = function(){
+  document.getElementById('folderListBottom').style.display = 'none';
+  document.getElementById('hide_content').style.display = '';
+  document.querySelector('.image-container').innerHTML = '';
+}

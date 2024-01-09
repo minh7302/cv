@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <link rel="stylesheet" href="./static/css/style.css">
-    <script src="./static/js/act.js"></script>
+    <script src="./static/js/act.js" defer></script>
 </head>
 <body>
 
@@ -64,7 +64,7 @@
                                         imgButton.onclick = function() {
                                             // Update the displayed image when an image button is clicked
                                             var displayedImage = document.getElementById('displayedImage');
-                                            displayedImage.src = "/static/img/Test/" + folder + "/" + image;
+                                            displayedImage.src = "/static/img/input/" + folder + "/" + image;
                                         };
                                         imageList.appendChild(imgButton);
                                     });
@@ -157,16 +157,125 @@
       <div class="content">
         <div class="content_top">
           <div style="width: 45%;">
-            <div style="text-align: center;">Low light</div>
+            <div style="text-align: center;">Original</div>
             <img width="100%" style="height: 90%;" id="displayedImageLow">
           </div>
           <div style="width: 45%;">
-              <div style="text-align: center;">High light</div>
+              <div style="text-align: center;">Result</div>
               <img width="100%" style="height: 90%;" id="displayedImageHigh">
           </div>
         </div>
 
         <div class="content_bottom">
+          <div id="folderListBottom" style="display: flex; justify-content: space-around; margin-top: 10%;">
+              <!-- Folder buttons will be added here dynamically -->
+          </div>
+          
+
+          <div id="hide_content" style="display: none; width: 100%;">
+            <button id="parent_folder" style="margin-left: 3%; margin-top: 2%;"></button>
+
+            <script>
+              document.getElementById('parent_folder').onclick = function(){
+                document.getElementById('folderListBottom').style.display = 'flex';
+                document.getElementById('hide_content').style.display = 'none';
+              }
+            </script>
+
+            <div id="folderListBottomSub" style="display: flex; justify-content: space-around; height: 10%; margin-top: 3%;">
+              <!-- Folder buttons will be added here dynamically -->
+            </div>
+            <div class="image-container" style="display: flex; justify-content: space-around; height: 40%; width: 100%; overflow: scroll; margin-top: 3%;">
+                <!-- Images will be displayed here dynamically -->
+            </div>
+          </div>
+      </div>
+      
+      <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Fetch and display folders on page load
+            fetch('/folders-names')
+                .then(response => response.json())
+                .then(data => {
+                    var folderListBottom = document.getElementById('folderListBottom');
+                    data.folders.forEach(folder => {
+                        var folderButton = document.createElement('button');
+                        folderButton.innerText = folder;
+                        folderButton.onclick = function () {
+                            // Fetch and display subfolders for the selected folder
+                            fetch('/subfolders/' + folder)
+                                .then(response => response.json())
+                                .then(data => {
+                                    var parent_folder = document.getElementById('parent_folder')
+                                    parent_folder.innerHTML = folder
+                                    var subfolderList = document.getElementById('folderListBottomSub');
+                                    subfolderList.innerHTML = '';  // Clear previous subfolders
+                                    data.subfolders.forEach(subfolder => {
+                                        var subfolderButton = document.createElement('button');
+                                        subfolderButton.innerText = subfolder;
+                                        subfolderButton.onclick = function () {
+                                            // Fetch and display images for the selected subfolder
+                                            fetch('/images-names/' + folder + '/' + subfolder)
+                                                .then(response => response.json())
+                                                .then(data => {
+                                                  console.log(data)
+                                                    var imageList = document.querySelector('.image-container');
+                                                    imageList.innerHTML = '';  // Clear previous images
+                                                    data.images.forEach(image => {
+                                                        console.log("/static/img/output/" + folder + "/" + subfolder + "/" + image)
+                                                        var imgElement = document.createElement('img');
+                                                        imgElement.src = "/static/img/output/" + folder + "/" + subfolder + "/" + image;
+                                                        imgElement.alt = "Displayed Image";
+                                                        imgElement.style.width = "10%";
+                                                        imgElement.style.border = '1px solid black'
+                                                        imgElement.classList.add("image", "clickable-image");
+                                                        imgElement.onclick = function () {
+                                                            // Update the displayed image when an image button is clicked
+                                                            var displayedImage = document.getElementById('displayedImageHigh');
+                                                            displayedImage.src = imgElement.src;
+                                                            var displayedImageHigh = document.getElementById('displayedImageLow');
+                                                            displayedImageHigh.src = "/static/img/input/" + subfolder + "/" + image.slice(0,image.length - 4);
+                                                            
+                                                        };
+                                                        imageList.appendChild(imgElement);
+                                                    });
+                                                    imageList.style.display = 'flex';
+                                                })
+                                                .catch(error => console.error('Error:', error));
+                                        };
+                                        subfolderList.appendChild(subfolderButton);
+                                    });
+                                    subfolderList.style.display = 'flex';
+                                })
+                                .catch(error => console.error('Error:', error));
+                        };
+                        folderListBottom.appendChild(folderButton);
+                    });
+                })
+                .catch(error => console.error('Error:', error));
+        });
+    </script>
+    
+    <!-- <script>
+      var clickableImages = document.querySelectorAll('.clickable-image');
+      clickableImages.forEach(function(image, index) {
+        image.onclick = function() {
+          // Lấy ảnh low và high tương ứng
+          var lowImagePath = "/static/img/BrighteningTrain/low/" + imageList[index + page * 3];
+          var highImagePath = "/static/img/BrighteningTrain/high/" + imageList[index + page * 3];
+          
+          // Hiển thị ảnh low và high trong content_top
+          var displayedImageLow = document.getElementById('displayedImageLow');
+          var displayedImageHigh = document.getElementById('displayedImageHigh');
+          
+          displayedImageLow.src = lowImagePath;
+          displayedImageHigh.src = highImagePath;
+        };
+      });
+    </script> -->
+      
+
+        <!-- <div class="content_bottom">
           <div class="image-container" style="display: flex; justify-content: space-around; height: 90%;">
             <img width="30%" class="image clickable-image" id="img_result_1" alt="Displayed Image 1">
             <img width="30%" class="image clickable-image" id="img_result_2" alt="Displayed Image 2">
@@ -228,7 +337,7 @@
             // Initial image display
             fetchAndDisplayImages();
             
-        </script>
+        </script> -->
         
         
       </div>
@@ -253,23 +362,7 @@
 </html>
 
 
-<script>
-  var clickableImages = document.querySelectorAll('.clickable-image');
-  clickableImages.forEach(function(image, index) {
-    image.onclick = function() {
-      // Lấy ảnh low và high tương ứng
-      var lowImagePath = "/static/img/BrighteningTrain/low/" + imageList[index + page * 3];
-      var highImagePath = "/static/img/BrighteningTrain/high/" + imageList[index + page * 3];
-      
-      // Hiển thị ảnh low và high trong content_top
-      var displayedImageLow = document.getElementById('displayedImageLow');
-      var displayedImageHigh = document.getElementById('displayedImageHigh');
-      
-      displayedImageLow.src = lowImagePath;
-      displayedImageHigh.src = highImagePath;
-    };
-  });
-</script>
+
 
 <script>
 var convertForm = document.querySelector('form');
