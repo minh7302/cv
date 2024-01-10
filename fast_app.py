@@ -57,30 +57,12 @@ async def get_images(folder: str):
     images = [img for img in os.listdir(folder_path) if img.endswith(('.jpg', '.jpeg', '.png', '.bmp'))]
     return {"images": images}
 
-@app.get("/folders-names", response_class=JSONResponse)
-async def get_folders_names():
-    image_folder = "static/img/output"
-    folders = [folder for folder in os.listdir(image_folder) if os.path.isdir(os.path.join(image_folder, folder))]
-    return {"folders": folders}
-
-@app.get("/subfolders/{parent_folder}", response_class=JSONResponse)
-async def get_subfolders(parent_folder: str):
-    parent_folder_path = os.path.join("static/img/output", parent_folder)
-    subfolders = [subfolder for subfolder in os.listdir(parent_folder_path) if os.path.isdir(os.path.join(parent_folder_path, subfolder))]
-    return {"subfolders": subfolders}
-
-@app.get("/images-names/{folder}/{subfolder}", response_class=JSONResponse)
-async def get_images_names(folder: str, subfolder: str):
-    folder_path = os.path.join("static/img/output", folder, subfolder)
-    images = [img for img in os.listdir(folder_path)]
+@app.get("/images_results/{folder}/{filename}", response_class=JSONResponse)
+async def get_images(folder: str, filename: str):
+    folder_path = os.path.join("static/img/output", folder, filename)
+    print(folder_path)
+    images = [img for img in os.listdir(folder_path) if img.endswith(('.jpg', '.jpeg', '.png', '.bmp'))]
     return {"images": images}
-
-
-# @app.get("/images_result/{folder}", response_class=JSONResponse)
-# async def get_images_result(folder: str):
-#     folder_path = os.path.join("static/img/BrighteningTrain", folder)
-#     images = [img for img in os.listdir(folder_path) if img.endswith(('.jpg', '.jpeg', '.png', '.bmp'))]
-#     return {"images": images}
 
 @app.post("/convert-image/")
 async def convert_image(method: str = Form(...), low_image_path: str = Form(...), param_methods = Form(...)):

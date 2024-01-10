@@ -43,6 +43,7 @@
             
       <script>
         document.addEventListener("DOMContentLoaded", function() {
+          var displayedImage = document.getElementById('displayedImage');
             // Fetch and display folders on page load
             fetch('/folders')
                 .then(response => response.json())
@@ -63,7 +64,6 @@
                                         imgButton.innerText = image;
                                         imgButton.onclick = function() {
                                             // Update the displayed image when an image button is clicked
-                                            var displayedImage = document.getElementById('displayedImage');
                                             displayedImage.src = "/static/img/input/" + folder + "/" + image;
                                         };
                                         imageList.appendChild(imgButton);
@@ -74,8 +74,59 @@
                         };
                         folderList.appendChild(button);
                     });
-                })
-                .catch(error => console.error('Error:', error));
+                  })
+                  .catch(error => console.error('Error:', error));
+              
+
+            displayedImage.addEventListener('click', function() {
+              console.log(this.src)
+                // Extract the folder and filename from the displayed image source
+                var imagePath = this.src.replace(window.location.origin, '');
+                var parts = imagePath.split('/');
+                var folder = parts[parts.length - 2];
+                var filename = parts[parts.length - 1];
+                filename = filename.replace('.jpg','');
+                filename = filename.replace('.png','');
+                filename = filename.replace('.bmp','')
+                // Fetch and display images in the corresponding output folder
+                fetch('/images_results/' + folder + '/' + filename)
+                  .then(response => response.json())
+                  .then(data => {
+                    var contentBottom = document.querySelector('.content_bottom');
+                    contentBottom.innerHTML = '';  // Clear previous images
+                    data.images.forEach(image => {
+                      var imageContainer = document.createElement('div');
+                      imageContainer.style.width = '10%';
+                      imageContainer.style.marginTop = "8%"
+
+                      var imgElement = document.createElement('img');
+                      imgElement.src = "/static/img/output/" + folder + '/' + filename + "/" + image;
+                      imgElement.style.width = "100%";
+                      imgElement.style.height = "40%";
+                      imgElement.style.border = '1px solid black';
+                      imgElement.onclick = function () {
+                          // Update the displayed image when an image button is clicked
+                        var displayedImage = document.getElementById('displayedImageHigh');
+                        displayedImage.src = imgElement.src;
+                        var displayedImageHigh = document.getElementById('displayedImageLow');
+                        displayedImageHigh.src = "/static/img/input/" + subfolder + "/" + image.slice(0,image.length - 4);
+                      };
+                      imageContainer.appendChild(imgElement);
+
+                      var nameParagraph = document.createElement('p');
+                      nameParagraph.textContent = image.replace('.jpg','');
+                      nameParagraph.style.textAlign = 'center';
+                      imageContainer.appendChild(nameParagraph);
+
+                      // Append the container to the content_bottom
+                      contentBottom.appendChild(imageContainer);
+
+                    });
+                    contentBottom.style.display = 'flex';
+                  })
+                  .catch(error => console.error('Error:', error));
+            });
+
         });
       </script>
         
@@ -167,178 +218,8 @@
         </div>
 
         <div class="content_bottom">
-          <div id="folderListBottom" style="display: flex; justify-content: space-around; margin-top: 10%;">
-              <!-- Folder buttons will be added here dynamically -->
-          </div>
-          
 
-          <div id="hide_content" style="display: none; width: 100%;">
-            <button id="parent_folder" style="margin-left: 3%; margin-top: 2%;"></button>
-
-            <script>
-              document.getElementById('parent_folder').onclick = function(){
-                document.getElementById('folderListBottom').style.display = 'flex';
-                document.getElementById('hide_content').style.display = 'none';
-              }
-            </script>
-
-            <div id="folderListBottomSub" style="display: flex; justify-content: space-around; height: 10%; margin-top: 3%;">
-              <!-- Folder buttons will be added here dynamically -->
-            </div>
-            <div class="image-container" style="display: flex; justify-content: space-around; height: 40%; width: 100%; overflow: scroll; margin-top: 3%;">
-                <!-- Images will be displayed here dynamically -->
-            </div>
-          </div>
-      </div>
-      
-      <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            // Fetch and display folders on page load
-            fetch('/folders-names')
-                .then(response => response.json())
-                .then(data => {
-                    var folderListBottom = document.getElementById('folderListBottom');
-                    data.folders.forEach(folder => {
-                        var folderButton = document.createElement('button');
-                        folderButton.innerText = folder;
-                        folderButton.onclick = function () {
-                            // Fetch and display subfolders for the selected folder
-                            fetch('/subfolders/' + folder)
-                                .then(response => response.json())
-                                .then(data => {
-                                    var parent_folder = document.getElementById('parent_folder')
-                                    parent_folder.innerHTML = folder
-                                    var subfolderList = document.getElementById('folderListBottomSub');
-                                    subfolderList.innerHTML = '';  // Clear previous subfolders
-                                    data.subfolders.forEach(subfolder => {
-                                        var subfolderButton = document.createElement('button');
-                                        subfolderButton.innerText = subfolder;
-                                        subfolderButton.onclick = function () {
-                                            // Fetch and display images for the selected subfolder
-                                            fetch('/images-names/' + folder + '/' + subfolder)
-                                                .then(response => response.json())
-                                                .then(data => {
-                                                  console.log(data)
-                                                    var imageList = document.querySelector('.image-container');
-                                                    imageList.innerHTML = '';  // Clear previous images
-                                                    data.images.forEach(image => {
-                                                        console.log("/static/img/output/" + folder + "/" + subfolder + "/" + image)
-                                                        var imgElement = document.createElement('img');
-                                                        imgElement.src = "/static/img/output/" + folder + "/" + subfolder + "/" + image;
-                                                        imgElement.alt = "Displayed Image";
-                                                        imgElement.style.width = "10%";
-                                                        imgElement.style.border = '1px solid black'
-                                                        imgElement.classList.add("image", "clickable-image");
-                                                        imgElement.onclick = function () {
-                                                            // Update the displayed image when an image button is clicked
-                                                            var displayedImage = document.getElementById('displayedImageHigh');
-                                                            displayedImage.src = imgElement.src;
-                                                            var displayedImageHigh = document.getElementById('displayedImageLow');
-                                                            displayedImageHigh.src = "/static/img/input/" + subfolder + "/" + image.slice(0,image.length - 4);
-                                                            
-                                                        };
-                                                        imageList.appendChild(imgElement);
-                                                    });
-                                                    imageList.style.display = 'flex';
-                                                })
-                                                .catch(error => console.error('Error:', error));
-                                        };
-                                        subfolderList.appendChild(subfolderButton);
-                                    });
-                                    subfolderList.style.display = 'flex';
-                                })
-                                .catch(error => console.error('Error:', error));
-                        };
-                        folderListBottom.appendChild(folderButton);
-                    });
-                })
-                .catch(error => console.error('Error:', error));
-        });
-    </script>
-    
-    <!-- <script>
-      var clickableImages = document.querySelectorAll('.clickable-image');
-      clickableImages.forEach(function(image, index) {
-        image.onclick = function() {
-          // Lấy ảnh low và high tương ứng
-          var lowImagePath = "/static/img/BrighteningTrain/low/" + imageList[index + page * 3];
-          var highImagePath = "/static/img/BrighteningTrain/high/" + imageList[index + page * 3];
-          
-          // Hiển thị ảnh low và high trong content_top
-          var displayedImageLow = document.getElementById('displayedImageLow');
-          var displayedImageHigh = document.getElementById('displayedImageHigh');
-          
-          displayedImageLow.src = lowImagePath;
-          displayedImageHigh.src = highImagePath;
-        };
-      });
-    </script> -->
-      
-
-        <!-- <div class="content_bottom">
-          <div class="image-container" style="display: flex; justify-content: space-around; height: 90%;">
-            <img width="30%" class="image clickable-image" id="img_result_1" alt="Displayed Image 1">
-            <img width="30%" class="image clickable-image" id="img_result_2" alt="Displayed Image 2">
-            <img width="30%" class="image clickable-image" id="img_result_3" alt="Displayed Image 3">
-          </div>
-
-          <div style="display: flex; justify-content: space-around; margin-top: 1%;">
-            <button onclick="prevImages()">&lt;</button>
-            <button onclick="nextImages()">&gt;</button>
-          </div>
         </div>
-        
-        <script>
-            var startIndex = 0;
-            var imagesPerPage = 3;
-            var totalImages = 0;
-            var imageList = [];
-            var page = 0;
-            function updateImages() {
-                for (var i = 0; i < imagesPerPage; i++) {
-                    var imgIndex = startIndex + i;
-                    var imgElement = document.getElementById('img_result_' + (i + 1));
-                    if (imgIndex < totalImages) {
-                        imgElement.src = "/static/img/BrighteningTrain/high/" + imageList[imgIndex];
-                        imgElement.style.display = 'inline-block';
-                    } else {
-                        imgElement.style.display = 'none';
-                    }
-                }
-            }
-        
-            function fetchAndDisplayImages() {
-                fetch('/images_result/high')
-                    .then(response => response.json())
-                    .then(data => {
-                        imageList = data.images;
-                        totalImages = imageList.length;
-                        updateImages();
-                    })
-                    .catch(error => console.error('Error:', error));
-            }
-        
-            function nextImages() {
-                page += 1;
-                startIndex = (startIndex + imagesPerPage) % totalImages;
-                updateImages();
-            }
-        
-            function prevImages() {
-                page -= 1;
-                if (page >= 0) {
-                  startIndex = (startIndex - imagesPerPage + totalImages) % totalImages;
-                  updateImages();
-                } else {
-                  page = 0;
-                }
-            }
-        
-            // Initial image display
-            fetchAndDisplayImages();
-            
-        </script> -->
-        
         
       </div>
 
