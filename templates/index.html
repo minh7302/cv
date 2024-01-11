@@ -88,6 +88,7 @@
                 filename = filename.replace('.jpg','');
                 filename = filename.replace('.png','');
                 filename = filename.replace('.bmp','')
+                filename = filename.replace('.jpeg','')
                 // Fetch and display images in the corresponding output folder
                 fetch('/images_results/' + folder + '/' + filename)
                   .then(response => response.json())
