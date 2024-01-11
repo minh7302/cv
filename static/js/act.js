@@ -5,9 +5,8 @@ function displayImage() {
   var reader = new FileReader();
   reader.onload = function (e) {
       uploadedImage.src = e.target.result;
-      updateDisplayedImage();  // Update the displayed image when a new image is uploaded
+      updateDisplayedImage();
       
-      // Send the uploaded file to the server
       var formData = new FormData();
       formData.append("file", input.files[0]);
 

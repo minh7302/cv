@@ -17,12 +17,6 @@
           Nhóm 
         </div>
         
-        <!-- <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="displayImage()">
-        <label style="text-align: center; cursor: pointer;" for="imageInput" style="cursor: pointer;">Upload Image</label>
-        <div>
-            <img onclick="get_img(this)" id="uploadedImage" style="max-width: 100%;">
-        </div> -->
-        
       </div>
 
       <div class="sb_mid">
@@ -30,10 +24,10 @@
         <div style="display: flex; justify-content:end; margin-top: 5%;">
             <div id="folderList" style="display: flex; flex-direction: column; position: absolute; left: 2%;">
               <div>Choose image:</div>
-                <!-- Folder buttons will be added here dynamically -->
+
             </div>
             <div id="imageList" style="display: flex; flex-direction: column; overflow: scroll; margin-right: 10%;">
-                <!-- Image buttons will be added here dynamically -->
+
             </div>
         </div>
       </div>
@@ -44,7 +38,6 @@
       <script>
         document.addEventListener("DOMContentLoaded", function() {
           var displayedImage = document.getElementById('displayedImage');
-            // Fetch and display folders on page load
             fetch('/folders')
                 .then(response => response.json())
                 .then(data => {
@@ -53,17 +46,15 @@
                         var button = document.createElement('button');
                         button.innerText = folder;
                         button.onclick = function() {
-                            // Fetch and display images for the selected folder
                             fetch('/images/' + folder)
                                 .then(response => response.json())
                                 .then(data => {
                                     var imageList = document.getElementById('imageList');
-                                    imageList.innerHTML = '';  // Clear previous images
+                                    imageList.innerHTML = ''; 
                                     data.images.forEach(image => {
                                         var imgButton = document.createElement('button');
                                         imgButton.innerText = image;
                                         imgButton.onclick = function() {
-                                            // Update the displayed image when an image button is clicked
                                             displayedImage.src = "/static/img/input/" + folder + "/" + image;
                                         };
                                         imageList.appendChild(imgButton);
@@ -80,7 +71,6 @@
 
             displayedImage.addEventListener('click', function() {
               console.log(this.src)
-                // Extract the folder and filename from the displayed image source
                 var imagePath = this.src.replace(window.location.origin, '');
                 var parts = imagePath.split('/');
                 var folder = parts[parts.length - 2];
@@ -89,12 +79,11 @@
                 filename = filename.replace('.png','');
                 filename = filename.replace('.bmp','')
                 filename = filename.replace('.jpeg','')
-                // Fetch and display images in the corresponding output folder
                 fetch('/images_results/' + folder + '/' + filename)
                   .then(response => response.json())
                   .then(data => {
                     var contentBottom = document.querySelector('.content_bottom');
-                    contentBottom.innerHTML = '';  // Clear previous images
+                    contentBottom.innerHTML = '';
                     data.images.forEach(image => {
                       var imageContainer = document.createElement('div');
                       imageContainer.style.width = '10%';
@@ -106,7 +95,6 @@
                       imgElement.style.height = "40%";
                       imgElement.style.border = '1px solid black';
                       imgElement.onclick = function () {
-                          // Update the displayed image when an image button is clicked
                         var displayedImage = document.getElementById('displayedImageHigh');
                         displayedImage.src = imgElement.src;
                         var displayedImageHigh = document.getElementById('displayedImageLow');
@@ -119,7 +107,6 @@
                       nameParagraph.style.textAlign = 'center';
                       imageContainer.appendChild(nameParagraph);
 
-                      // Append the container to the content_bottom
                       contentBottom.appendChild(imageContainer);
 
                     });
@@ -251,12 +238,11 @@ var convertForm = document.querySelector('form');
 convertForm.addEventListener('submit', function(event) {
     event.preventDefault();
 
-    // Lấy phương pháp và đường dẫn ảnh low từ form
     var selectedMethod = document.getElementById('cars').value;
     var lowImagePath = document.getElementById('displayedImageLow').src;
     var paramMethodsValue = document.getElementById('param_methods').value + ' ';
     console.log(paramMethodsValue)
-    // Gửi yêu cầu chuyển đổi đến backend
+
     fetch('/convert-image/', {
         method: 'POST',
         headers: {
@@ -270,7 +256,6 @@ convertForm.addEventListener('submit', function(event) {
     })
     .then(response => response.json())
     .then(data => {
-        // Hiển thị ảnh high trong content_top
         displayedImageHigh.src = data.high_image + '?' + new Date().getTime();
     })
     .catch(error => console.error('Error:', error));
